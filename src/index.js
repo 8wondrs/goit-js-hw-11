@@ -73,7 +73,7 @@ function renderGallery(images) {
     return;
   }
   window.scrollBy({
-    top: cardHeight * 3.6,
+    top: cardHeight * 2,
     behavior: 'smooth',
   });
 }
@@ -111,7 +111,15 @@ function onSearchForm(e) {
     });
 }
 
+let loadingMore = false;
+
 function onloadMore() {
+  if (loadingMore) {
+    return;
+  }
+
+  loadingMore = true;
+
   page += 1;
   simpleLightBox.destroy();
 
@@ -133,13 +141,14 @@ function onloadMore() {
     .catch(error => console.log(error))
     .finally(() => {
       spinnerStop();
+      loadingMore = false;
     });
 }
 
 function checkIfEndOfPage() {
   return (
     window.innerHeight + window.pageYOffset >=
-    document.documentElement.scrollHeight
+    document.documentElement.scrollHeight - 50
   );
 }
 
@@ -149,7 +158,20 @@ function showLoadMorePage() {
   }
 }
 
-window.addEventListener('scroll', showLoadMorePage);
+let timeoutId = null;
+
+function throttle(func, delay) {
+  return function () {
+    if (!timeoutId) {
+      timeoutId = setTimeout(() => {
+        func();
+        timeoutId = null;
+      }, delay);
+    }
+  };
+}
+
+window.addEventListener('scroll', throttle(showLoadMorePage, 500));
 
 arrowTop.onclick = function () {
   window.scrollTo({ top: 0, behavior: 'smooth' });
